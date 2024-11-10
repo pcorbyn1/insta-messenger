@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { User, Send, Eye } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export function MessagePage() {
   const [recipient, setRecipient] = useState('')
@@ -18,6 +19,7 @@ export function MessagePage() {
   const [isApiInput, setIsApiInput] = useState(false)
   const [jsonInput, setJsonInput] = useState('')
   const [previewData, setPreviewData] = useState<{ recipient: string; message: string } | null> (null)
+  const [error, setError] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -45,9 +47,10 @@ export function MessagePage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     const token = localStorage.getItem('token')
     if (!token) {
-      alert('You must be logged in to send messages')
+      setError('You must be logged in to send messages')
       return
     }
     const messageData = previewData || { recipient, message }
@@ -69,7 +72,7 @@ export function MessagePage() {
       setJsonInput('')
       setPreviewData(null)
     } else {
-      alert('Failed to send message')
+      setError(data.message || 'Failed to send message')
     }
   }
 
@@ -127,6 +130,12 @@ export function MessagePage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+        {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="flex items-center space-x-2 mb-4">
             <Switch
               id="api-toggle"
