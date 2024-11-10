@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { MessageCircle, User, LogIn } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export function LoginPage() {
   const [username, setUsername] = useState('')
@@ -17,6 +18,7 @@ export function LoginPage() {
   const [isApiInput, setIsApiInput] = useState(false)
   const [jsonInput, setJsonInput] = useState('')
   const [previewData, setPreviewData] = useState<{ username: string } | null> (null)
+  const [error, setError] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
     const loginData = previewData || { username, password }
     const response = await fetch('/api/auth', {
       method: 'POST',
@@ -51,17 +54,27 @@ export function LoginPage() {
       localStorage.setItem('token', data.token)
       router.push('/message')
     } else {
-      alert('Invalid credentials')
+      setError(data.message || 'Invalid credentials')
     }
   }
 
   const handleJsonInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setJsonInput(e.target.value)
+    setError('')
     try {
       const parsedData = JSON.parse(e.target.value)
+      if (typeof parsedData !== 'object' || parsedData === null) {
+        throw new Error('Invalid JSON structure')
+      }
+      if (!parsedData.username || !parsedData.password) {
+        throw new Error('JSON must include "username" and "password" fields')
+      }
       setPreviewData(parsedData)
     } catch (error) {
       setPreviewData(null)
+      if (e.target.value.trim() !== '') {
+        setError(`Invalid JSON: ${(error as Error).message}`)
+      }
     }
   }
 
@@ -81,6 +94,12 @@ export function LoginPage() {
           <CardTitle className="text-3xl font-bold text-center mb-6 text-gray-800">InstaMessage</CardTitle>
         </CardHeader>
         <CardContent>
+        {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="flex items-center space-x-2 mb-4">
             <Switch
               id="api-toggle"
@@ -103,6 +122,7 @@ export function LoginPage() {
                     <CardTitle className="text-lg">Preview</CardTitle>
                   </CardHeader>
                   <CardContent>
+                    
                     <p><strong>Username:</strong> {previewData.username}</p>
                     <p><strong>Password:</strong> ********</p>
                   </CardContent>

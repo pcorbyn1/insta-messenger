@@ -96,11 +96,21 @@ export function MessagePage() {
   // JSON input handling logic
   const handleJsonInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setJsonInput(e.target.value)
+    setError('')
     try {
       const parsedData = JSON.parse(e.target.value)
+      if (typeof parsedData !== 'object' || parsedData === null) {
+        throw new Error('Invalid JSON structure')
+      }
+      if (!parsedData.recipient || !parsedData.message) {
+        throw new Error('JSON must include "recipient" and "message" fields')
+      }
       setPreviewData(parsedData)
     } catch (error) {
       setPreviewData(null)
+      if (e.target.value.trim() !== '') {
+        setError(`Invalid JSON: ${(error as Error).message}`)
+      }
     }
   }
 
