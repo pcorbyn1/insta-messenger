@@ -1,38 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAgent } from '@agentql/core'
-
-// Create an AgentQL agent
-const agent = createAgent({
-  schema: `
-    type Query {
-      checkSession(token: String!): Boolean!
-    }
-
-    type Mutation {
-      login(username: String!, password: String!): String
-    }
-  `,
-  resolvers: {
-    Query: {
-      checkSession: async (_: any, { token }: { token: string }) => {
-        // TODO: Implement session check logic
-        return token.length > 0
-      },
-    },
-    Mutation: {
-      login: async (_: any, { username, password }: { username: string; password: string }) => {
-        // TODO: Implement login logic
-        if (username === 'demo' && password === 'password') {
-          return 'valid_token'
-        }
-        return null
-      },
-    },
-  },
-})
+import { executeQuery } from '@/lib/agentQL'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const result = await agent.execute(body.query, body.variables)
-  return NextResponse.json(result)
+  const { action, username, password, token, searchTerm, from, to, content } = body
+
+  let result;
+
+  switch (action) {
+    case 'login':
+      result = await executeQuery({
+        query: 'login',
+        variables: { username, password }
+      });
+      return NextResponse.json(result && 'token' in result ? { success: true, token: result.token } : { success: false, message: 'Invalid credentials' });
+
+      case 'checkSession':
+        result = await executeQuery({
+          query: 'checkSession',
+          variables: { token }
+        });
+        return NextResponse.json({ success: 'isValid' in result ? result.isValid : false });
+
+    case 'searchUsers':
+      result = await executeQuery({
+        query: 'searchUsers',
+        variables: { searchTerm }
+      });
+      return NextResponse.json({ success: true, users: result });
+
+    case 'sendMessage':
+      result = await executeQuery({
+        query: 'sendMessage',
+        variables: { from, to, content }
+      });
+      return NextResponse.json({ success: result?.success ?? false, message: result?.message ?? 'Failed to send message' });
+
+    default:
+      return NextResponse.json({ success: false, message: 'Invalid action' });
+  }
 }
