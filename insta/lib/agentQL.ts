@@ -8,6 +8,7 @@ type AgentQLQuery = {
       { id: 1, username: 'demo', password: 'password' },
       { id: 2, username: 'john', password: 'doe' },
       { id: 3, username: 'jane', password: 'smith' },
+      { id: 4, username: 'example_username', password: 'example_password' },
     ],
     messages: [
       { id: 1, from: 'demo', to: 'john', content: 'Hello John!' },
