@@ -15,12 +15,12 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json(result && 'token' in result ? { success: true, token: result.token } : { success: false, message: 'Invalid credentials' });
 
-      case 'checkSession':
-        result = await executeQuery({
-          query: 'checkSession',
-          variables: { token }
-        });
-        return NextResponse.json({ success: 'isValid' in result ? result.isValid : false });
+    case 'checkSession':
+      result = await executeQuery({
+        query: 'checkSession',
+        variables: { token }
+      });
+      return NextResponse.json({ success: result ?? false });
 
     case 'searchUsers':
       result = await executeQuery({
@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
 
     case 'sendMessage':
       result = await executeQuery({
-        query: 'sendMessage',
-        variables: { from, to, content }
-      });
+          query: 'sendMessage',
+          variables: { from, to, content }
+      }) as unknown as { success: boolean; message?: string };
       return NextResponse.json({ success: result?.success ?? false, message: result?.message ?? 'Failed to send message' });
 
     default:

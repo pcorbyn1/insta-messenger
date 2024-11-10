@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MessageCircle, User } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 
 export function LoginPage() {
   const [username, setUsername] = useState('')
