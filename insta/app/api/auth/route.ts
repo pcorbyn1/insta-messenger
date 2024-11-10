@@ -30,6 +30,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, users: result });
 
     case 'sendMessage':
+        const userExistsResult = await executeQuery({
+            query: 'checkUserExists',
+            variables: { username: to }
+          });
+          if (!userExistsResult) {
+            return NextResponse.json({ success: false, message: 'Recipient does not exist' });
+          }
       result = await executeQuery({
           query: 'sendMessage',
           variables: { from, to, content }

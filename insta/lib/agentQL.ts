@@ -29,6 +29,11 @@ type AgentQLQuery = {
     if (query.includes('checkSession')) {
       return { isValid: variables?.token?.startsWith('token_') };
     }
+
+    if (query.includes('checkUserExists')) {
+        const user = mockDatabase.users.find(u => u.username === variables?.username);
+        return { exists: !!user };
+      }
   
     if (query.includes('searchUsers')) {
       const searchTerm = variables?.searchTerm.toLowerCase();
