@@ -3,7 +3,23 @@ type AgentQLQuery = {
     variables?: Record<string, any>;
 };
 
-const mockDatabase = {
+type User = {
+    id: number;
+    username: string;
+    password: string;
+  };
+  
+  type Message = {
+    id: number;
+    from: string;
+    to: string;
+    content: string;
+  };
+  
+  const mockDatabase: {
+    users: User[];
+    messages: Message[];
+  } = {
     users: [
         { id: 1, username: 'demo', password: 'password' },
         { id: 2, username: 'john', password: 'doe' },
@@ -23,7 +39,7 @@ export const executeQuery = async (agentQLQuery: AgentQLQuery) => {
         const user = mockDatabase.users.find(
             (u) => u.username === variables?.username && u.password === variables?.password
         );
-        return user ? { token: `token_${user.id}_${Date.now()}` } : null;
+        return user ? { success: true, token: `token_${user.id}_${Date.now()}` } : { success: false, error: 'Invalid credentials' };
     }
 
     if (query.includes('checkSession')) {
@@ -46,7 +62,7 @@ export const executeQuery = async (agentQLQuery: AgentQLQuery) => {
         if (existingUser) {
             return { success: false, error: 'Username already exists' };
         }
-        const newUser = {
+        const newUser: User = {
             id: mockDatabase.users.length + 1,
             username: variables?.username,
             password: variables?.password,
@@ -60,7 +76,7 @@ export const executeQuery = async (agentQLQuery: AgentQLQuery) => {
         if (!recipientExists) {
           return { success: false, error: 'Recipient does not exist' };
         }
-        const newMessage = {
+        const newMessage: Message = {
           id: mockDatabase.messages.length + 1,
           from: variables?.from,
           to: variables?.to,
@@ -70,5 +86,5 @@ export const executeQuery = async (agentQLQuery: AgentQLQuery) => {
         return { success: true, message: newMessage };
       }
 
-    return null;
+      return { success: false, error: 'Invalid query' };
 };
