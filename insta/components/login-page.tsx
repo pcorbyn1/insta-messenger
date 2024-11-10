@@ -54,7 +54,7 @@ export function LoginPage() {
       localStorage.setItem('token', data.token)
       router.push('/message')
     } else {
-      setError(data.message || 'Invalid credentials')
+      setError(data.error || 'Invalid credentials')
     }
   }
 
