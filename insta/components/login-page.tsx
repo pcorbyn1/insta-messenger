@@ -5,13 +5,18 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MessageCircle } from 'lucide-react'
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { MessageCircle, User, LogIn } from 'lucide-react'
 
 export function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [suggestions, setSuggestions] = useState([])
+  const [isApiInput, setIsApiInput] = useState(false)
+  const [jsonInput, setJsonInput] = useState('')
+  const [previewData, setPreviewData] = useState<{ username: string } | null> (null)
   const router = useRouter()
 
   useEffect(() => {
@@ -35,10 +40,11 @@ export function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    const loginData = previewData || { username, password }
     const response = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login', username, password }),
+      body: JSON.stringify({ action: 'login', ...loginData }),
     })
     const data = await response.json()
     if (data.success) {
@@ -49,21 +55,13 @@ export function LoginPage() {
     }
   }
 
-  const handleUsernameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setUsername(value)
-    if (value.length > 1) {
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'searchUsers', searchTerm: value }),
-      })
-      const data = await response.json()
-      if (data.success) {
-        setSuggestions(data.users)
-      }
-    } else {
-      setSuggestions([])
+  const handleJsonInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setJsonInput(e.target.value)
+    try {
+      const parsedData = JSON.parse(e.target.value)
+      setPreviewData(parsedData)
+    } catch (error) {
+      setPreviewData(null)
     }
   }
 
@@ -75,63 +73,84 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-      <div className="bg-white p-8 rounded-lg shadow-2xl w-96 transform hover:scale-105 transition-transform duration-300">
-        <div className="flex justify-center mb-6">
-          <MessageCircle className="h-16 w-16 text-pink-500" />
-        </div>
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">InstaMessage</h1>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={handleUsernameChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
-              required
-            />
-            {suggestions.length > 0 && (
-              <ul className="mt-1 bg-white border border-gray-300 rounded-md shadow-sm">
-                {suggestions.map((user: { id: string; username: string }) => (
-                  <li
-                    key={user.id}
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      setUsername(user.username)
-                      setSuggestions([])
-                    }}
-                  >
-                    {user.username}
-                  </li>
-                ))}
-              </ul>
-            )}
+      <Card className="w-full max-w-md p-8 transform hover:scale-105 transition-transform duration-300">
+        <CardHeader>
+          <div className="flex justify-center mb-6">
+            <MessageCircle className="h-16 w-16 text-pink-500" />
           </div>
-          <div>
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
-              required
+          <CardTitle className="text-3xl font-bold text-center mb-6 text-gray-800">InstaMessage</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2 mb-4">
+            <Switch
+              id="api-toggle"
+              checked={isApiInput}
+              onChange={(e) => setIsApiInput(e.target.checked)}
             />
+            <Label htmlFor="api-toggle">Use API Input</Label>
           </div>
-          <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">
+          {isApiInput ? (
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Paste JSON here"
+                value={jsonInput}
+                onChange={handleJsonInputChange}
+                className="min-h-[150px]"
+              />
+              {previewData && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Preview</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p><strong>Username:</strong> {previewData.username}</p>
+                    <p><strong>Password:</strong> ********</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                  required
+                />
+              </div>
+            </form>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleLogin} className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center">
+            <LogIn className="h-5 w-5 mr-2" />
             Log In
           </Button>
-        </form>
+        </CardFooter>
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">Don't have an account?</p>
           <Button variant="link" className="text-pink-500 hover:text-pink-600 font-semibold" onClick={() => router.push('/signup')}>
             Sign Up Now
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
