@@ -40,8 +40,30 @@ export function SignUpPage() {
     e.preventDefault()
     setError('')
 
+    // Check for empty fields
+    if (!username.trim()) {
+      setError('Username is required')
+      return
+    }
+
+    if (!password.trim()) {
+      setError('Password is required')
+      return
+    }
+
+    if (!confirmPassword.trim()) {
+      setError('Please confirm your password')
+      return
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match')
+      return
+    }
+
+    // Additional password strength check
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
       return
     }
 
