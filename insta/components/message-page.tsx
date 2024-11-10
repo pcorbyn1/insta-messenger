@@ -72,7 +72,7 @@ export function MessagePage() {
       setJsonInput('')
       setPreviewData(null)
     } else {
-      setError(data.message || 'Failed to send message')
+      setError(data.message || 'Failed to send message - user does not exist')
     }
   }
 
