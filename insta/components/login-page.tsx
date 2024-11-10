@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MessageCircle, User } from 'lucide-react'
 
-export default function Component() {
+export function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const router = useRouter()
@@ -60,7 +60,7 @@ export default function Component() {
         </form>
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">Don't have an account?</p>
-          <Button variant="link" className="text-pink-500 hover:text-pink-600 font-semibold" onClick={() => router.push('/signup')}>
+          <Button variant="link" className="text-pink-500 hover:text-pink-600 font-semibold"  onClick={() => router.push('?page=signup')}>
             Sign Up Now
           </Button>
         </div>
